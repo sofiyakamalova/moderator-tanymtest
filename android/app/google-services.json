@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "465608974236",
+    "project_id": "tanymtest-app",
+    "storage_bucket": "tanymtest-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:465608974236:android:a772f3642f0eba42ac7259",
+        "android_client_info": {
+          "package_name": "com.example.tanymtest_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAi6hFqspIp1MoClmmBDUSwNLQmBu7atJQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:465608974236:android:98f8a727a5e40a0dac7259",
+        "android_client_info": {
+          "package_name": "com.example.tanymtest_moderator_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAi6hFqspIp1MoClmmBDUSwNLQmBu7atJQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

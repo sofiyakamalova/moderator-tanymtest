@@ -1,0 +1,5 @@
+package com.example.tanymtest_moderator_app
+
+import io.flutter.embedding.android.FlutterActivity
+
+class MainActivity: FlutterActivity()
