@@ -13,6 +13,7 @@ class AddGroupPage extends StatelessWidget {
 
   final TextEditingController nameController = TextEditingController();
   final TextEditingController curatorController = TextEditingController();
+  final AuthProvider _authProvider = AuthProvider();
 
   @override
   Widget build(BuildContext context) {
@@ -64,12 +65,10 @@ class AddGroupPage extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               CommonButton(
+                  itMustbe: true,
                   onTap: () async {
-                    String school_id =
-                        await Provider.of<AuthProvider>(context, listen: false)
-                            .fetchSchoolId();
                     await groupProvider.addGroup(
-                        school_id, nameController.text, curatorController.text);
+                        'jihc08', nameController.text, curatorController.text);
                     Navigator.pop(context);
                   },
                   text: 'Добавить'),

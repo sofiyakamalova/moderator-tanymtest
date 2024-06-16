@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:tanymtest_moderator_app/src/core/constants/app_colors.dart';
 
-class CommonButton extends StatelessWidget {
-  final void Function()? onTap;
+class CommonButton extends StatefulWidget {
+  final Future<void> Function()? onTap;
   final String text;
   final Color border_color;
   final Color background_color;
@@ -16,6 +16,7 @@ class CommonButton extends StatelessWidget {
   final double? hor;
   final double? borderRad;
   final double? borderWidth;
+  final bool? itMustbe;
 
   const CommonButton({
     super.key,
@@ -33,32 +34,67 @@ class CommonButton extends StatelessWidget {
     this.vert,
     this.borderRad = 5,
     this.borderWidth = 1,
+    this.itMustbe = false,
   });
 
   @override
+  State<CommonButton> createState() => _CommonButtonState();
+}
+
+class _CommonButtonState extends State<CommonButton> {
+  bool _isLoading = false;
+  @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: () async {
+        if (widget.itMustbe == true) {
+          setState(() {
+            _isLoading = true;
+          });
+
+          await Future.delayed(Duration(milliseconds: 500));
+
+          await widget.onTap?.call();
+
+          setState(() {
+            _isLoading = false;
+          });
+        } else {
+          setState(() {
+            _isLoading == false;
+          });
+          await widget.onTap?.call();
+        }
+      },
       child: Container(
-        margin: EdgeInsets.symmetric(vertical: pad_size),
-        padding: EdgeInsets.all(padding!),
+        margin: EdgeInsets.symmetric(vertical: widget.pad_size),
+        padding: EdgeInsets.all(widget.padding!),
         decoration: BoxDecoration(
-          color: background_color,
-          borderRadius: BorderRadius.circular(borderRad!),
+          color: widget.background_color,
+          borderRadius: BorderRadius.circular(widget.borderRad!),
           border: Border.all(
-            color: border_color,
-            width: borderWidth!,
+            color: widget.border_color,
+            width: widget.borderWidth!,
           ),
         ),
         child: Center(
-          child: Text(
-            text,
-            style: TextStyle(
-              fontSize: fntSize,
-              color: text_color,
-              fontWeight: fntWeight,
-            ),
-          ),
+          child: _isLoading
+              ? const SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: const CircularProgressIndicator(
+                    color: AppColors.white_color,
+                    strokeWidth: 2,
+                  ),
+                )
+              : Text(
+                  widget.text,
+                  style: TextStyle(
+                    fontSize: widget.fntSize,
+                    color: widget.text_color,
+                    fontWeight: widget.fntWeight,
+                  ),
+                ),
         ),
       ),
     );

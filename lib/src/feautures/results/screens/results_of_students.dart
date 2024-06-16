@@ -7,6 +7,7 @@ import 'package:tanymtest_moderator_app/src/core/constants/app_colors.dart';
 import 'package:tanymtest_moderator_app/src/feautures/groups/model/group_model.dart';
 import 'package:tanymtest_moderator_app/src/feautures/groups/provider/group_provider.dart';
 import 'package:tanymtest_moderator_app/src/feautures/login/provider/auth_provider.dart';
+import 'package:tanymtest_moderator_app/src/feautures/login/psychologist_model.dart';
 import 'package:tanymtest_moderator_app/src/feautures/results/model/result_model.dart';
 import 'package:tanymtest_moderator_app/src/feautures/results/provider/result_provider.dart';
 
@@ -29,11 +30,12 @@ class _ResultsOfStudentsState extends State<ResultsOfStudents> {
   }
 
   Future<void> initStudentsLoading() async {
+    final AuthProvider _authProvider = AuthProvider();
+    final PsychologistModel? user = await _authProvider.getUserData();
+
     try {
-      String schoolId = await Provider.of<AuthProvider>(context, listen: false)
-          .fetchSchoolId();
       await Provider.of<GroupProvider>(context, listen: false).getStudents(
-        schoolId,
+        user!.school_id,
         widget.group.group_id,
       );
     } catch (e) {

@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:tanymtest_moderator_app/src/core/common/common_app_bar.dart';
 import 'package:tanymtest_moderator_app/src/core/common/common_text.dart';
 import 'package:tanymtest_moderator_app/src/core/common/common_text_field.dart';
 import 'package:tanymtest_moderator_app/src/core/constants/app_colors.dart';
+import 'package:tanymtest_moderator_app/src/feautures/groups/model/group_model.dart';
 import 'package:tanymtest_moderator_app/src/feautures/groups/provider/group_provider.dart';
-import 'package:tanymtest_moderator_app/src/feautures/login/provider/auth_provider.dart';
 import 'package:tanymtest_moderator_app/src/feautures/results/screens/results_of_students.dart';
 
 class ResultsOfGroups extends StatefulWidget {
@@ -16,30 +15,26 @@ class ResultsOfGroups extends StatefulWidget {
 }
 
 class _ResultsOfGroupsState extends State<ResultsOfGroups> {
+  late Stream<List<GroupModel>> _groupStream;
+  // final AuthProvider _authProvider = AuthProvider();
   @override
   void initState() {
     // TODO: implement initState
-    initGroupLoading();
+    _initializeStreams();
     super.initState();
   }
 
-  Future<void> initGroupLoading() async {
-    try {
-      String school_id = await Provider.of<AuthProvider>(context, listen: false)
-          .fetchSchoolId();
-      await Provider.of<GroupProvider>(context, listen: false)
-          .getGroups(school_id);
-    } catch (e) {
-      print("Ошибка при загрузке групп: $e");
-    }
+  void _initializeStreams() async {
+    // final PsychologistModel? user = await _authProvider.getUserData();
+    final GroupProvider _groupProvider = GroupProvider();
+    _groupStream = _groupProvider.getGroups('jihc08');
+    setState(() {});
   }
 
   TextEditingController searchController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    // String zone = Provider.of<ResultProvider>(context, listen: false)
-    //     .determineZone(result);
     return SafeArea(
       child: Scaffold(
         appBar: CommonAppBar(
@@ -98,105 +93,111 @@ class _ResultsOfGroupsState extends State<ResultsOfGroups> {
               ),
               const SizedBox(height: 10),
               Expanded(
-                child: Consumer<GroupProvider>(
-                  builder: (context, groupProvider, child) {
-                    return ListView.separated(
-                      separatorBuilder: (_, __) {
-                        return const SizedBox(height: 20);
-                      },
-                      itemCount: groupProvider.groups.length,
-                      itemBuilder: (context, index) {
-                        var group = groupProvider.groups[index];
-                        return GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    ResultsOfStudents(group: group),
-                              ),
-                            );
-                          },
-                          child: Container(
-                            height: 140,
-                            width: double.maxFinite,
-                            decoration: BoxDecoration(
-                              color: AppColors.white_color,
-                              borderRadius: BorderRadius.circular(10.0),
-                            ),
-                            alignment: Alignment.topLeft,
-                            child: Padding(
-                              padding: const EdgeInsets.all(20.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  CommonText(
-                                    text: group.group_name,
-                                    color: AppColors.black_color,
-                                    size: 26,
+                child: StreamBuilder<List<GroupModel>>(
+                  stream: _groupStream,
+                  builder: (context, AsyncSnapshot snapshot) {
+                    return snapshot.hasData
+                        ? ListView.separated(
+                            separatorBuilder: (_, __) {
+                              return const SizedBox(height: 20);
+                            },
+                            itemCount: snapshot.data!.length,
+                            itemBuilder: (context, index) {
+                              GroupModel group = snapshot.data![index];
+                              return GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          ResultsOfStudents(group: group),
+                                    ),
+                                  );
+                                },
+                                child: Container(
+                                  height: 140,
+                                  width: double.maxFinite,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.white_color,
+                                    borderRadius: BorderRadius.circular(10.0),
                                   ),
-                                  SizedBox(
-                                    width: double.maxFinite,
-                                    child: LinearProgressIndicator(
-                                      borderRadius: BorderRadius.circular(5),
-                                      value: 10 / 74,
-                                      backgroundColor: Colors.grey[300],
-                                      valueColor:
-                                          const AlwaysStoppedAnimation<Color>(
-                                        Colors.green,
-                                      ),
-                                      minHeight: 8,
+                                  alignment: Alignment.topLeft,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(20.0),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        CommonText(
+                                          text: group.group_name,
+                                          color: AppColors.black_color,
+                                          size: 26,
+                                        ),
+                                        SizedBox(
+                                          width: double.maxFinite,
+                                          child: LinearProgressIndicator(
+                                            borderRadius:
+                                                BorderRadius.circular(5),
+                                            value: 10 / 74,
+                                            backgroundColor: Colors.grey[300],
+                                            valueColor:
+                                                const AlwaysStoppedAnimation<
+                                                    Color>(
+                                              Colors.green,
+                                            ),
+                                            minHeight: 8,
+                                          ),
+                                        ),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            const SizedBox(
+                                              child: Row(
+                                                children: [
+                                                  CircleAvatar(
+                                                    radius: 7,
+                                                    backgroundColor:
+                                                        AppColors.primary_color,
+                                                  ),
+                                                  SizedBox(width: 5),
+                                                  CommonText(text: '12'),
+                                                  SizedBox(width: 10),
+                                                  CircleAvatar(
+                                                    radius: 7,
+                                                    backgroundColor:
+                                                        AppColors.yellow_color,
+                                                  ),
+                                                  SizedBox(width: 5),
+                                                  CommonText(text: '6'),
+                                                  SizedBox(width: 10),
+                                                  CircleAvatar(
+                                                    radius: 7,
+                                                    backgroundColor:
+                                                        AppColors.red_color,
+                                                  ),
+                                                  SizedBox(width: 5),
+                                                  CommonText(text: '5'),
+                                                ],
+                                              ),
+                                            ),
+                                            CommonText(
+                                              text:
+                                                  'Пройдено ? из ${group.students.length}',
+                                              color: AppColors.dark_grey_color,
+                                            ),
+                                          ],
+                                        )
+                                      ],
                                     ),
                                   ),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      const SizedBox(
-                                        child: Row(
-                                          children: [
-                                            CircleAvatar(
-                                              radius: 7,
-                                              backgroundColor:
-                                                  AppColors.primary_color,
-                                            ),
-                                            SizedBox(width: 5),
-                                            CommonText(text: '12'),
-                                            SizedBox(width: 10),
-                                            CircleAvatar(
-                                              radius: 7,
-                                              backgroundColor:
-                                                  AppColors.yellow_color,
-                                            ),
-                                            SizedBox(width: 5),
-                                            CommonText(text: '6'),
-                                            SizedBox(width: 10),
-                                            CircleAvatar(
-                                              radius: 7,
-                                              backgroundColor:
-                                                  AppColors.red_color,
-                                            ),
-                                            SizedBox(width: 5),
-                                            CommonText(text: '5'),
-                                          ],
-                                        ),
-                                      ),
-                                      CommonText(
-                                        text:
-                                            'Пройдено ? из ${group.students.length}',
-                                        color: AppColors.dark_grey_color,
-                                      ),
-                                    ],
-                                  )
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    );
+                                ),
+                              );
+                            },
+                          )
+                        : Container();
                   },
                 ),
               ),

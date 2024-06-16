@@ -74,7 +74,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                 ),
               ),
               CommonButton(
-                  onTap: () {
+                  onTap: () async {
                     setState(() {
                       if (currentIndex != data.items.length - 1) {
                         currentIndex++;

@@ -63,11 +63,15 @@ class TestsPage extends StatelessWidget {
                       CommonCustomBtn(
                         onTap: () {
                           Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const ResultsOfGroups(),
-                            ),
-                          );
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => ResultsOfGroups()));
+                          // Navigator.push(
+                          //   context,
+                          //   MaterialPageRoute(
+                          //     builder: (context) => const ResultsOfGroups(),
+                          //   ),
+                          // );
                         },
                         hor: 20,
                         vert: 6,

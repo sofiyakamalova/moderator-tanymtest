@@ -38,33 +38,6 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  //Get school ID
-  Future<String> fetchSchoolId() async {
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      DocumentSnapshot snapshot = await FirebaseFirestore.instance
-          .collection('psychologists')
-          .doc(user.uid)
-          .get();
-
-      if (!snapshot.exists) {
-        throw Exception("Документ для пользователя не найден.");
-      }
-      Map<String, dynamic>? data = snapshot.data() as Map<String, dynamic>?;
-      if (data == null || !data.containsKey('school_id')) {
-        throw Exception(
-            "Поле 'school_id' не найдено в документе пользователя.");
-      }
-      String? schoolId = data['school_id'] as String?;
-      if (schoolId == null) {
-        throw Exception("Поле 'school_id' пусто или неверного типа.");
-      }
-      return schoolId;
-    } else {
-      throw Exception("Пользователь не авторизован");
-    }
-  }
-
 //get user
   Future<PsychologistModel?> getUserData() async {
     try {

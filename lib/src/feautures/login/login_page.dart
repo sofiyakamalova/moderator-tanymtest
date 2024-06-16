@@ -107,7 +107,10 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 const SizedBox(height: 25),
                 CommonButton(
-                  onTap: signIn,
+                  itMustbe: true,
+                  onTap: () async {
+                    signIn();
+                  },
                   text: 'Войти',
                 ),
               ],

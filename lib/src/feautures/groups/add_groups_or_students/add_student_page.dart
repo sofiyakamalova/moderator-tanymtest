@@ -6,6 +6,7 @@ import 'package:tanymtest_moderator_app/src/core/common/common_text.dart';
 import 'package:tanymtest_moderator_app/src/core/common/common_text_field.dart';
 import 'package:tanymtest_moderator_app/src/core/constants/app_colors.dart';
 import 'package:tanymtest_moderator_app/src/feautures/login/provider/auth_provider.dart';
+import 'package:tanymtest_moderator_app/src/feautures/login/psychologist_model.dart';
 
 import '../provider/group_provider.dart';
 
@@ -21,7 +22,7 @@ class AddStudentPage extends StatelessWidget {
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-
+  final AuthProvider _authProvider = AuthProvider();
   @override
   Widget build(BuildContext context) {
     final groupProvider = Provider.of<GroupProvider>(context, listen: false);
@@ -117,16 +118,17 @@ class AddStudentPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 15),
                 CommonButton(
+                  itMustbe: true,
                   onTap: () async {
-                    String school_id =
-                        await Provider.of<AuthProvider>(context, listen: false)
-                            .fetchSchoolId();
+                    final PsychologistModel? user =
+                        await _authProvider.getUserData();
+
                     await groupProvider.registerStudent(
                       email: emailController.text,
                       password: passwordController.text,
                       name: nameController.text,
                       phone: phoneController.text,
-                      schoolId: school_id,
+                      schoolId: user!.school_id,
                       groupId: groupId,
                       gender: genderController.text,
                     );

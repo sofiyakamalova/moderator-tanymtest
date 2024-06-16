@@ -52,7 +52,8 @@ class WelcomePage extends StatelessWidget {
               Align(
                 alignment: Alignment.bottomCenter,
                 child: CommonButton(
-                    onTap: () {
+                    itMustbe: true,
+                    onTap: () async {
                       Navigator.push(
                         context,
                         MaterialPageRoute(

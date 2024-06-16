@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:tanymtest_moderator_app/src/core/common/common_text.dart';
+import 'package:tanymtest_moderator_app/src/core/constants/app_colors.dart';
 import 'package:tanymtest_moderator_app/src/feautures/groups/model/group_model.dart';
 import 'package:tanymtest_moderator_app/src/feautures/groups/model/student_model.dart';
 
@@ -9,64 +11,67 @@ class GroupProvider extends ChangeNotifier {
 
   List<GroupModel> groups = [];
 
-  Future<void> getGroups(String schoolId) async {
+  Stream<List<GroupModel>> getGroups(String schoolId) {
     try {
-      QuerySnapshot groupSnapshot = await _firestore
+      return _firestore
           .collection('schools')
           .doc(schoolId)
           .collection('groups')
-          .get();
+          .snapshots()
+          .asyncMap((snapshot) async {
+        List<GroupModel> groups = [];
+        for (var doc in snapshot.docs) {
+          var groupData = doc.data() as Map<String, dynamic>;
+          var studentsSnapshot =
+              await doc.reference.collection('students').get();
+          var studentsData = studentsSnapshot.docs
+              .map((studentDoc) => StudentModel.fromJson(
+                  studentDoc.data() as Map<String, dynamic>))
+              .toList();
 
-      List<GroupModel> loadedGroups = [];
-      for (var groupDoc in groupSnapshot.docs) {
-        var data = groupDoc.data();
-        if (data == null) continue;
+          GroupModel group = GroupModel(
+            group_id: groupData['group_id'] ?? 'Нет id',
+            group_name: groupData['group_name'] ?? 'Не найдено',
+            group_curator:
+                groupData['group_curator'] ?? 'Нет данных о кураторе',
+            students: studentsData,
+          );
 
-        var groupData = data as Map<String, dynamic>;
-
-        var studentsSnapshot =
-            await groupDoc.reference.collection('students').get();
-
-        List<StudentModel> students = studentsSnapshot.docs
-            .map((studentDoc) => StudentModel.fromJson(
-                studentDoc.data() as Map<String, dynamic>))
-            .toList();
-
-        GroupModel group = GroupModel(
-          group_id: groupData['group_id'] ?? 'Нету id',
-          group_name: groupData['group_name'] ?? 'Нету названия группы',
-          group_curator: groupData['group_curator'] ?? 'Нет данных о кураторе',
-          students: students,
-        );
-        loadedGroups.add(group);
-      }
-      groups = loadedGroups;
-      notifyListeners();
+          groups.add(group);
+        }
+        return groups;
+      });
     } catch (e) {
       print("Error loading groups and students: $e");
+      throw e;
     }
   }
 
 //get students
   List<StudentModel> students = [];
-  Future<void> getStudents(String schoolId, String groupId) async {
-    QuerySnapshot snapshot = await FirebaseFirestore.instance
-        .collection('schools')
-        .doc(schoolId)
-        .collection('groups')
-        .doc(groupId)
-        .collection('students')
-        .orderBy('name', descending: false)
-        .get();
 
-    List<StudentModel> newStudents = [];
-    for (var doc in snapshot.docs) {
-      newStudents
-          .add(StudentModel.fromJson(doc.data() as Map<String, dynamic>));
+  Stream<List<StudentModel>> getStudents(String schoolId, String groupId) {
+    try {
+      return FirebaseFirestore.instance
+          .collection('schools')
+          .doc(schoolId)
+          .collection('groups')
+          .doc(groupId)
+          .collection('students')
+          .orderBy('name', descending: false)
+          .snapshots()
+          .map((snapshot) {
+        List<StudentModel> students = [];
+        for (var doc in snapshot.docs) {
+          students
+              .add(StudentModel.fromJson(doc.data() as Map<String, dynamic>));
+        }
+        return students;
+      });
+    } catch (e) {
+      print("Error loading students: $e");
+      throw e;
     }
-
-    students = newStudents;
-    notifyListeners();
   }
 
   Future<void> addGroup(
@@ -104,6 +109,8 @@ class GroupProvider extends ChangeNotifier {
     }
   }
 
+
+
   Future<void> registerStudent({
     required String email,
     required String password,
@@ -134,8 +141,10 @@ class GroupProvider extends ChangeNotifier {
       );
 
       print("Студент успешно зарегистрирован: $userId");
+
     } catch (e) {
       print("Ошибка при регистрации студента: $e");
+
       throw Exception('Failed to register student: $e');
     }
   }
