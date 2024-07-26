@@ -5,8 +5,7 @@ import 'package:tanymtest_moderator_app/src/core/common/common_text_field.dart';
 import 'package:tanymtest_moderator_app/src/core/common/common_title.dart';
 import 'package:tanymtest_moderator_app/src/core/constants/app_colors.dart';
 import 'package:tanymtest_moderator_app/src/feautures/login/provider/auth_provider.dart';
-
-import '../navigation/bottom_nav_bar.dart';
+import 'package:tanymtest_moderator_app/src/feautures/navigation/bottom_nav_bar.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});

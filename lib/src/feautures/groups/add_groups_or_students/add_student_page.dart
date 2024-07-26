@@ -5,40 +5,34 @@ import 'package:tanymtest_moderator_app/src/core/common/common_button.dart';
 import 'package:tanymtest_moderator_app/src/core/common/common_text.dart';
 import 'package:tanymtest_moderator_app/src/core/common/common_text_field.dart';
 import 'package:tanymtest_moderator_app/src/core/constants/app_colors.dart';
-import 'package:tanymtest_moderator_app/src/feautures/login/provider/auth_provider.dart';
-import 'package:tanymtest_moderator_app/src/feautures/login/psychologist_model.dart';
-
-import '../provider/group_provider.dart';
+import 'package:tanymtest_moderator_app/src/feautures/groups/provider/group_provider.dart';
 
 class AddStudentPage extends StatelessWidget {
   final String groupId;
-  AddStudentPage({
-    super.key,
-    required this.groupId,
-  });
+  AddStudentPage({super.key, required this.groupId});
 
   final TextEditingController nameController = TextEditingController();
-  final TextEditingController genderController = TextEditingController();
-  final TextEditingController phoneController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
+  final TextEditingController genderController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final AuthProvider _authProvider = AuthProvider();
+
   @override
   Widget build(BuildContext context) {
     final groupProvider = Provider.of<GroupProvider>(context, listen: false);
     return SafeArea(
       child: Scaffold(
         appBar: CommonAppBar(
-          title: 'Добавить студента',
+          background_color: AppColors.background_color,
           onTap: () {
             Navigator.pop(context);
           },
-          background_color: AppColors.background_color,
           text_color: AppColors.primary_color,
           icon: const Icon(
             Icons.arrow_back_ios_new_rounded,
             color: AppColors.primary_color,
           ),
+          title: 'Добавить студента',
         ),
         backgroundColor: AppColors.background_color,
         body: SingleChildScrollView(
@@ -58,11 +52,10 @@ class AddStudentPage extends StatelessWidget {
                   hintText: '',
                   obscureText: false,
                   height: 50,
-                  txtInpAct: TextInputAction.next,
                 ),
-                const SizedBox(height: 15),
+                const SizedBox(height: 20),
                 const CommonText(
-                  text: 'Почта',
+                  text: 'Email студента',
                   color: AppColors.dark_grey_color,
                 ),
                 const SizedBox(height: 5),
@@ -72,11 +65,10 @@ class AddStudentPage extends StatelessWidget {
                   hintText: '',
                   obscureText: false,
                   height: 50,
-                  txtInpAct: TextInputAction.next,
                 ),
-                const SizedBox(height: 15),
+                const SizedBox(height: 20),
                 const CommonText(
-                  text: 'Номер телефона',
+                  text: 'Телефон студента',
                   color: AppColors.dark_grey_color,
                 ),
                 const SizedBox(height: 5),
@@ -86,25 +78,10 @@ class AddStudentPage extends StatelessWidget {
                   hintText: '',
                   obscureText: false,
                   height: 50,
-                  txtInpAct: TextInputAction.next,
                 ),
-                const SizedBox(height: 15),
+                const SizedBox(height: 20),
                 const CommonText(
-                  text: 'Пароль',
-                  color: AppColors.dark_grey_color,
-                ),
-                const SizedBox(height: 5),
-                CommonTextField(
-                  keyboardType: TextInputType.visiblePassword,
-                  controller: passwordController,
-                  hintText: '',
-                  obscureText: false,
-                  height: 50,
-                  txtInpAct: TextInputAction.next,
-                ),
-                const SizedBox(height: 15),
-                const CommonText(
-                  text: 'Пол',
+                  text: 'Пол студента',
                   color: AppColors.dark_grey_color,
                 ),
                 const SizedBox(height: 5),
@@ -114,25 +91,54 @@ class AddStudentPage extends StatelessWidget {
                   hintText: '',
                   obscureText: false,
                   height: 50,
-                  txtInpAct: TextInputAction.next,
                 ),
-                const SizedBox(height: 15),
+                const SizedBox(height: 20),
+                const CommonText(
+                  text: 'Пароль',
+                  color: AppColors.dark_grey_color,
+                ),
+                const SizedBox(height: 5),
+                CommonTextField(
+                  keyboardType: TextInputType.text,
+                  controller: passwordController,
+                  hintText: '',
+                  obscureText: false,
+                  height: 50,
+                ),
+                const SizedBox(height: 20),
                 CommonButton(
                   itMustbe: true,
                   onTap: () async {
-                    final PsychologistModel? user =
-                        await _authProvider.getUserData();
+                    if (nameController.text.isEmpty ||
+                        emailController.text.isEmpty ||
+                        phoneController.text.isEmpty ||
+                        genderController.text.isEmpty ||
+                        passwordController.text.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text('Пожалуйста, заполните все поля')),
+                      );
+                      return;
+                    }
 
-                    await groupProvider.registerStudent(
-                      email: emailController.text,
-                      password: passwordController.text,
-                      name: nameController.text,
-                      phone: phoneController.text,
-                      schoolId: user!.school_id,
-                      groupId: groupId,
-                      gender: genderController.text,
-                    );
-                    Navigator.pop(context);
+                    try {
+                      await groupProvider.registerStudent(
+                        name: nameController.text,
+                        email: emailController.text,
+                        phone: phoneController.text,
+                        gender: genderController.text,
+                        password: passwordController.text,
+                        schoolId: groupProvider.schoolId,
+                        groupId: groupId,
+                      );
+                      Navigator.pop(context);
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content:
+                                Text('Ошибка при добавлении студента: $e')),
+                      );
+                    }
                   },
                   text: 'Добавить',
                 ),

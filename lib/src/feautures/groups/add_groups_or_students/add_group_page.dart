@@ -6,14 +6,12 @@ import 'package:tanymtest_moderator_app/src/core/common/common_text.dart';
 import 'package:tanymtest_moderator_app/src/core/common/common_text_field.dart';
 import 'package:tanymtest_moderator_app/src/core/constants/app_colors.dart';
 import 'package:tanymtest_moderator_app/src/feautures/groups/provider/group_provider.dart';
-import 'package:tanymtest_moderator_app/src/feautures/login/provider/auth_provider.dart';
 
 class AddGroupPage extends StatelessWidget {
   AddGroupPage({super.key});
 
   final TextEditingController nameController = TextEditingController();
   final TextEditingController curatorController = TextEditingController();
-  final AuthProvider _authProvider = AuthProvider();
 
   @override
   Widget build(BuildContext context) {
@@ -65,13 +63,31 @@ class AddGroupPage extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               CommonButton(
-                  itMustbe: true,
-                  onTap: () async {
+                itMustbe: true,
+                onTap: () async {
+                  if (nameController.text.isEmpty ||
+                      curatorController.text.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Пожалуйста, заполните все поля')),
+                    );
+                    return;
+                  }
+
+                  try {
                     await groupProvider.addGroup(
-                        'jihc08', nameController.text, curatorController.text);
+                      nameController.text,
+                      curatorController.text,
+                    );
                     Navigator.pop(context);
-                  },
-                  text: 'Добавить'),
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                          content: Text('Ошибка при добавлении группы: $e')),
+                    );
+                  }
+                },
+                text: 'Добавить',
+              ),
             ],
           ),
         ),

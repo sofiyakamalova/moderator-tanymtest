@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:tanymtest_moderator_app/src/core/common/common_app_bar.dart';
 import 'package:tanymtest_moderator_app/src/core/common/common_text.dart';
 import 'package:tanymtest_moderator_app/src/core/common/common_text_field.dart';
 import 'package:tanymtest_moderator_app/src/core/constants/app_colors.dart';
 import 'package:tanymtest_moderator_app/src/feautures/groups/model/group_model.dart';
 import 'package:tanymtest_moderator_app/src/feautures/groups/provider/group_provider.dart';
-import 'package:tanymtest_moderator_app/src/feautures/results/screens/results_of_students.dart';
 
 class ResultsOfGroups extends StatefulWidget {
   const ResultsOfGroups({super.key});
@@ -15,23 +15,19 @@ class ResultsOfGroups extends StatefulWidget {
 }
 
 class _ResultsOfGroupsState extends State<ResultsOfGroups> {
-  late Stream<List<GroupModel>> _groupStream;
-  // final AuthProvider _authProvider = AuthProvider();
+  late Future<void> _initialization;
+  TextEditingController searchController = TextEditingController();
+
   @override
   void initState() {
-    // TODO: implement initState
-    _initializeStreams();
     super.initState();
+    _initialization = _initializeProvider();
   }
 
-  void _initializeStreams() async {
-    // final PsychologistModel? user = await _authProvider.getUserData();
-    final GroupProvider _groupProvider = GroupProvider();
-    _groupStream = _groupProvider.getGroups('jihc08');
-    setState(() {});
+  Future<void> _initializeProvider() async {
+    final groupProvider = Provider.of<GroupProvider>(context, listen: false);
+    await groupProvider.initialize();
   }
-
-  TextEditingController searchController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -93,111 +89,151 @@ class _ResultsOfGroupsState extends State<ResultsOfGroups> {
               ),
               const SizedBox(height: 10),
               Expanded(
-                child: StreamBuilder<List<GroupModel>>(
-                  stream: _groupStream,
-                  builder: (context, AsyncSnapshot snapshot) {
-                    return snapshot.hasData
-                        ? ListView.separated(
-                            separatorBuilder: (_, __) {
-                              return const SizedBox(height: 20);
-                            },
-                            itemCount: snapshot.data!.length,
-                            itemBuilder: (context, index) {
-                              GroupModel group = snapshot.data![index];
-                              return GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          ResultsOfStudents(group: group),
-                                    ),
-                                  );
-                                },
-                                child: Container(
-                                  height: 140,
-                                  width: double.maxFinite,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.white_color,
-                                    borderRadius: BorderRadius.circular(10.0),
+                child: FutureBuilder(
+                  future: _initialization,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(
+                        child: CircularProgressIndicator(
+                          color: AppColors.primary_color,
+                        ),
+                      );
+                    } else if (snapshot.hasError) {
+                      return Center(child: Text('Ошибка: ${snapshot.error}'));
+                    } else {
+                      return Consumer<GroupProvider>(
+                        builder: (context, groupProvider, child) {
+                          return StreamBuilder<List<GroupModel>>(
+                            stream: groupProvider.getGroups(),
+                            builder: (context,
+                                AsyncSnapshot<List<GroupModel>> snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const Center(
+                                  child: CircularProgressIndicator(
+                                    color: AppColors.primary_color,
                                   ),
-                                  alignment: Alignment.topLeft,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(20.0),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        CommonText(
-                                          text: group.group_name,
-                                          color: AppColors.black_color,
-                                          size: 26,
+                                );
+                              } else if (snapshot.hasError) {
+                                return Center(
+                                    child: Text('Ошибка: ${snapshot.error}'));
+                              } else if (!snapshot.hasData ||
+                                  snapshot.data!.isEmpty) {
+                                return const Center(child: Text('Нет данных'));
+                              } else {
+                                return ListView.separated(
+                                  separatorBuilder: (_, __) {
+                                    return const SizedBox(height: 20);
+                                  },
+                                  itemCount: snapshot.data!.length,
+                                  itemBuilder: (context, index) {
+                                    GroupModel group = snapshot.data![index];
+                                    return GestureDetector(
+                                      onTap: () {
+                                        // Navigator.push(
+                                        //   context,
+                                        //   // MaterialPageRoute(
+                                        //   //   builder: (context) =>
+                                        //   //       ResultsOfStudents(group: group),
+                                        //   // ),
+                                        // );
+                                      },
+                                      child: Container(
+                                        height: 140,
+                                        width: double.maxFinite,
+                                        decoration: BoxDecoration(
+                                          color: AppColors.white_color,
+                                          borderRadius:
+                                              BorderRadius.circular(10.0),
                                         ),
-                                        SizedBox(
-                                          width: double.maxFinite,
-                                          child: LinearProgressIndicator(
-                                            borderRadius:
-                                                BorderRadius.circular(5),
-                                            value: 10 / 74,
-                                            backgroundColor: Colors.grey[300],
-                                            valueColor:
-                                                const AlwaysStoppedAnimation<
-                                                    Color>(
-                                              Colors.green,
-                                            ),
-                                            minHeight: 8,
-                                          ),
-                                        ),
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            const SizedBox(
-                                              child: Row(
+                                        alignment: Alignment.topLeft,
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(20.0),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              CommonText(
+                                                text: group.group_name,
+                                                color: AppColors.black_color,
+                                                size: 26,
+                                              ),
+                                              SizedBox(
+                                                width: double.maxFinite,
+                                                child: LinearProgressIndicator(
+                                                  borderRadius:
+                                                      BorderRadius.circular(5),
+                                                  value: 10 / 74,
+                                                  backgroundColor:
+                                                      Colors.grey[300],
+                                                  valueColor:
+                                                      const AlwaysStoppedAnimation<
+                                                          Color>(
+                                                    Colors.green,
+                                                  ),
+                                                  minHeight: 8,
+                                                ),
+                                              ),
+                                              Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
                                                 children: [
-                                                  CircleAvatar(
-                                                    radius: 7,
-                                                    backgroundColor:
-                                                        AppColors.primary_color,
+                                                  const SizedBox(
+                                                    child: Row(
+                                                      children: [
+                                                        CircleAvatar(
+                                                          radius: 7,
+                                                          backgroundColor:
+                                                              AppColors
+                                                                  .primary_color,
+                                                        ),
+                                                        SizedBox(width: 5),
+                                                        CommonText(text: '12'),
+                                                        SizedBox(width: 10),
+                                                        CircleAvatar(
+                                                          radius: 7,
+                                                          backgroundColor:
+                                                              AppColors
+                                                                  .yellow_color,
+                                                        ),
+                                                        SizedBox(width: 5),
+                                                        CommonText(text: '6'),
+                                                        SizedBox(width: 10),
+                                                        CircleAvatar(
+                                                          radius: 7,
+                                                          backgroundColor:
+                                                              AppColors
+                                                                  .red_color,
+                                                        ),
+                                                        SizedBox(width: 5),
+                                                        CommonText(text: '5'),
+                                                      ],
+                                                    ),
                                                   ),
-                                                  SizedBox(width: 5),
-                                                  CommonText(text: '12'),
-                                                  SizedBox(width: 10),
-                                                  CircleAvatar(
-                                                    radius: 7,
-                                                    backgroundColor:
-                                                        AppColors.yellow_color,
+                                                  CommonText(
+                                                    text:
+                                                        'Сдали ? из ${group.students.length}',
+                                                    color: AppColors
+                                                        .dark_grey_color,
                                                   ),
-                                                  SizedBox(width: 5),
-                                                  CommonText(text: '6'),
-                                                  SizedBox(width: 10),
-                                                  CircleAvatar(
-                                                    radius: 7,
-                                                    backgroundColor:
-                                                        AppColors.red_color,
-                                                  ),
-                                                  SizedBox(width: 5),
-                                                  CommonText(text: '5'),
                                                 ],
                                               ),
-                                            ),
-                                            CommonText(
-                                              text:
-                                                  'Пройдено ? из ${group.students.length}',
-                                              color: AppColors.dark_grey_color,
-                                            ),
-                                          ],
-                                        )
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              );
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                );
+                              }
                             },
-                          )
-                        : Container();
+                          );
+                        },
+                      );
+                    }
                   },
                 ),
               ),

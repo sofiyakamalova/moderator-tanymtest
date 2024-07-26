@@ -5,6 +5,7 @@ import 'package:tanymtest_moderator_app/src/feautures/groups/provider/group_prov
 import 'package:tanymtest_moderator_app/src/feautures/groups/provider/student_provider.dart';
 import 'package:tanymtest_moderator_app/src/feautures/login/auth_service/auth_gate.dart';
 import 'package:tanymtest_moderator_app/src/feautures/login/provider/auth_provider.dart';
+import 'package:tanymtest_moderator_app/src/feautures/login/provider/user_provider.dart';
 import 'package:tanymtest_moderator_app/src/feautures/results/provider/result_provider.dart';
 
 import 'firebase_options.dart';
@@ -21,6 +22,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => GroupProvider()),
         ChangeNotifierProvider(create: (_) => StudentProvider()),
         ChangeNotifierProvider(create: (_) => ResultProvider()),
+        ChangeNotifierProvider(create: (_) => UserProvider()),
       ],
       child: const MyApp(),
     ),

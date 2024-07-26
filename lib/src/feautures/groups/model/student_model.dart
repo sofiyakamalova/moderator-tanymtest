@@ -39,7 +39,7 @@ class StudentModel {
       uid: json['uid'] ?? 'ID не найден',
       name: json['name'] ?? 'Имя не найдено',
       email: json['email'] ?? 'Пароль не найден',
-      image: json['image'] ??
+      image: json['imageUrl'] ??
           'https://samarkand.itcamp.uz/assest/img/reviews/no-pic-ava.jpg',
       phone: json['phone'] ?? 'Номер не найден',
       gender: json['gender'] ?? 'Пол не найден',

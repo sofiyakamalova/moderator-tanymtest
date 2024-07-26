@@ -19,52 +19,17 @@ class GroupsPage extends StatefulWidget {
 }
 
 class _GroupsPageState extends State<GroupsPage> {
-  late Stream<List<GroupModel>> _groupStream;
+  late Future<void> _initialization;
 
   @override
   void initState() {
-    _initializeStreams();
     super.initState();
-  }
-  // void _initializeStreams() async {
-  //   final ResultProvider _resultProvider = ResultProvider();
-  //   _resultStream = _resultProvider.getResults();
-  //   setState(() {});
-  // }
-
-  void _initializeStreams() async {
-    // final PsychologistModel? user = await _authProvider.getUserData();
-    final GroupProvider _groupProvider = GroupProvider();
-    _groupStream = _groupProvider.getGroups('jihc08');
-    setState(() {});
+    _initialization = _initializeProvider();
   }
 
-  Future<void> _showDialog(BuildContext context, String groupId) async {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          backgroundColor: AppColors.white_color,
-          alignment: Alignment.center,
-          contentPadding: const EdgeInsets.all(0),
-          content: TextButton(
-            onPressed: () async {
-              await Provider.of<GroupProvider>(context, listen: false)
-                  .deleteGroup('jihc08', groupId);
-              Navigator.pop(context);
-            },
-            child: const CommonText(
-              text: 'Удалить группу',
-              fontWeight: FontWeight.w500,
-              color: AppColors.primary_color,
-            ),
-          ),
-        );
-      },
-    );
+  Future<void> _initializeProvider() async {
+    final groupProvider = Provider.of<GroupProvider>(context, listen: false);
+    await groupProvider.initialize();
   }
 
   //sign out function
@@ -85,78 +50,106 @@ class _GroupsPageState extends State<GroupsPage> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        appBar: const CommonAppBar(
+        appBar: CommonAppBar(
           title: 'Группы',
+          icon: const Icon(Icons.logout_outlined),
+          onTap: () async {
+            signOut();
+          },
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: StreamBuilder<List<GroupModel>>(
-            stream: _groupStream,
-            builder: (context, AsyncSnapshot snapshot) {
-              return snapshot.hasData
-                  ? GridView.builder(
-                      scrollDirection: Axis.vertical,
-                      shrinkWrap: true,
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 20.0,
-                        mainAxisSpacing: 20.0,
-                        mainAxisExtent: 90,
-                      ),
-                      itemCount: snapshot.data!.length,
-                      itemBuilder: (context, index) {
-                        GroupModel group = snapshot.data![index];
-                        return GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => StudentsListPage(
-                                  group: group,
-                                ),
-                              ),
-                            );
-                          },
-                          onLongPress: () {
-                            _showDialog(context, group.group_id);
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(15.0),
-                            decoration: BoxDecoration(
-                              color: AppColors.white_color,
-                              borderRadius: BorderRadius.circular(15),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.grey.withOpacity(0.5),
-                                  spreadRadius: 1,
-                                  blurRadius: 2,
-                                  offset: const Offset(0, 3),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                CommonTitle(
-                                  text: group.group_name,
-                                  text_align: TextAlign.start,
-                                  maxLines: 1,
-                                ),
-                                CommonText(
-                                  text:
-                                      '${group.students.length.toString()} студент',
-                                ),
-                              ],
-                            ),
+        body: FutureBuilder(
+          future: _initialization,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: CircularProgressIndicator(
+                  color: AppColors.primary_color,
+                ),
+              );
+            } else if (snapshot.hasError) {
+              return Center(child: Text('Ошибка: ${snapshot.error}'));
+            } else {
+              return Consumer<GroupProvider>(
+                builder: (context, groupProvider, child) {
+                  return StreamBuilder<List<GroupModel>>(
+                    stream: groupProvider.getGroups(),
+                    builder: (context, AsyncSnapshot snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(
+                          child: CircularProgressIndicator(
+                            color: AppColors.primary_color,
                           ),
                         );
-                      },
-                    )
-                  : Container();
-            },
-          ),
+                      } else if (snapshot.hasError) {
+                        return Center(child: Text('Ошибка: ${snapshot.error}'));
+                      } else if (!snapshot.hasData || snapshot.data.isEmpty) {
+                        return const Center(child: Text('Нет данных'));
+                      }
+                      return GridView.builder(
+                        scrollDirection: Axis.vertical,
+                        shrinkWrap: true,
+                        padding: const EdgeInsets.all(13.0),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 20.0,
+                          mainAxisSpacing: 20.0,
+                          mainAxisExtent: 90,
+                        ),
+                        itemCount: snapshot.data!.length,
+                        itemBuilder: (context, index) {
+                          GroupModel group = snapshot.data![index];
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => StudentsListPage(
+                                    group: group,
+                                  ),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(15.0),
+                              decoration: BoxDecoration(
+                                color: AppColors.white_color,
+                                borderRadius: BorderRadius.circular(15),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.5),
+                                    spreadRadius: 1,
+                                    blurRadius: 2,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  CommonTitle(
+                                    text: group.group_name,
+                                    text_align: TextAlign.start,
+                                    maxLines: 1,
+                                  ),
+                                  CommonText(
+                                    text:
+                                        '${group.students.length.toString()} студент',
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  );
+                },
+              );
+            }
+          },
         ),
         floatingActionButton: FloatingActionButton(
           backgroundColor: AppColors.primary_color,

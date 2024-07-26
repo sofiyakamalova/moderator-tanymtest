@@ -2,8 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
-import 'package:tanymtest_moderator_app/src/feautures/login/psychologist_model.dart';
+import 'package:flutter/foundation.dart';
 
 class AuthProvider extends ChangeNotifier {
   // Instance for authentication
@@ -38,29 +37,8 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-//get user
-  Future<PsychologistModel?> getUserData() async {
-    try {
-      User? firebaseUser = _firebaseAuth.currentUser;
-      if (firebaseUser != null) {
-        DocumentSnapshot userSnapshot = await _firestore
-            .collection('psychologists')
-            .doc(firebaseUser.uid)
-            .get();
-        if (userSnapshot.exists) {
-          return PsychologistModel.fromJson(
-              userSnapshot.data() as Map<String, dynamic>);
-        }
-      }
-    } catch (e) {
-      print('Error fetching user data: $e');
-    }
-    return null;
-  }
-
   // Sign out
   Future<void> signOut() async {
     await _firebaseAuth.signOut();
-    notifyListeners();
   }
 }
